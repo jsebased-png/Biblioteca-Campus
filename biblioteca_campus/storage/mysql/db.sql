@@ -159,3 +159,23 @@ CREATE TABLE transaccion (
 CREATE INDEX idx_transaccion_libro   ON transaccion (libro_id, fecha_prestamo);
 CREATE INDEX idx_transaccion_miembro ON transaccion (miembro_id, fecha_prestamo);
 CREATE INDEX idx_transaccion_estado  ON transaccion (estado);
+
+
+-- =====================================================================
+
+-- 1. Registrar el préstamo (asumiendo que el libro está disponible)
+INSERT INTO transaccion (libro_id, miembro_id, publicacion_id,
+                          fecha_prestamo, fecha_devolucion_esperada, estado)
+VALUES (2, 3, 5, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY), 'Prestado');
+
+-- 2. Actualizar el libro: bajar un ejemplar disponible
+--    y solo marcarlo como 'Prestado' si ya no queda ninguno
+UPDATE libro
+SET ejemplares_disponibles = ejemplares_disponibles - 1,
+    estado = CASE
+                WHEN ejemplares_disponibles - 1 = 0 THEN 'Prestado'
+                ELSE 'Disponible'
+             END
+WHERE libro_id = 2;
+
+COMMIT;
